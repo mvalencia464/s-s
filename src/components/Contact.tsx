@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Phone, Mail, MapPin, Clock, Send } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock, Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { useHighLevel } from '../hooks/useHighLevel';
+import { validateForm, ValidationErrors, FormData } from '../utils/formValidation';
 
 const Contact = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     company: '',
     email: '',
@@ -13,17 +15,73 @@ const Contact = () => {
     message: ''
   });
 
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [showSuccess, setShowSuccess] = useState(false);
+  const { createContact, submissionState, resetState } = useHighLevel();
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+
+    // Clear validation error for this field when user starts typing
+    if (validationErrors[name as keyof ValidationErrors]) {
+      setValidationErrors({
+        ...validationErrors,
+        [name]: undefined
+      });
+    }
+
+    // Clear success message if showing
+    if (showSuccess) {
+      setShowSuccess(false);
+    }
+
+    // Clear submission error if showing
+    if (submissionState.error) {
+      resetState();
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Form submitted:', formData);
+
+    // Reset previous states
+    setValidationErrors({});
+    setShowSuccess(false);
+    resetState();
+
+    // Validate form
+    const errors = validateForm(formData);
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+
+    // Submit to HighLevel
+    const success = await createContact(formData);
+
+    if (success) {
+      // Clear form and show success message
+      setFormData({
+        name: '',
+        company: '',
+        email: '',
+        phone: '',
+        acres: '',
+        service: '',
+        frequency: '',
+        message: ''
+      });
+      setShowSuccess(true);
+
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 5000);
+    }
   };
 
   const contactInfo = [
@@ -107,6 +165,28 @@ const Contact = () => {
             <h3 className="text-2xl font-bold text-[#1D2B40] mb-2">Get Your FREE Land Management Audit</h3>
             <p className="text-gray-600 mb-6">Complete this form and we'll show you exactly how much you could be saving (typical savings: 20-40%)</p>
             
+            {/* Success Message */}
+            {showSuccess && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-3">
+                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <div>
+                  <p className="text-green-800 font-semibold">Thank you for your submission!</p>
+                  <p className="text-green-700 text-sm">We'll get back to you within 24 hours with your FREE land management audit.</p>
+                </div>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {submissionState.error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-3">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                <div>
+                  <p className="text-red-800 font-semibold">Submission Failed</p>
+                  <p className="text-red-700 text-sm">{submissionState.error}</p>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
@@ -116,9 +196,15 @@ const Contact = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F07520] focus:border-transparent transition-all duration-200"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#F07520] focus:border-transparent transition-all duration-200 ${
+                      validationErrors.name ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
+                    disabled={submissionState.isLoading}
                     required
                   />
+                  {validationErrors.name && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.name}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-[#1D2B40] mb-2">Company</label>
@@ -128,6 +214,7 @@ const Contact = () => {
                     value={formData.company}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F07520] focus:border-transparent transition-all duration-200"
+                    disabled={submissionState.isLoading}
                   />
                 </div>
               </div>
@@ -140,9 +227,15 @@ const Contact = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F07520] focus:border-transparent transition-all duration-200"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#F07520] focus:border-transparent transition-all duration-200 ${
+                      validationErrors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
+                    disabled={submissionState.isLoading}
                     required
                   />
+                  {validationErrors.email && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.email}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-[#1D2B40] mb-2">Phone</label>
@@ -151,8 +244,15 @@ const Contact = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F07520] focus:border-transparent transition-all duration-200"
+                    placeholder="(555) 123-4567"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#F07520] focus:border-transparent transition-all duration-200 ${
+                      validationErrors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
+                    disabled={submissionState.isLoading}
                   />
+                  {validationErrors.phone && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.phone}</p>
+                  )}
                 </div>
               </div>
 
@@ -166,6 +266,7 @@ const Contact = () => {
                     onChange={handleInputChange}
                     placeholder="e.g., 500 acres, 10 buildings"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F07520] focus:border-transparent transition-all duration-200"
+                    disabled={submissionState.isLoading}
                   />
                 </div>
                 <div>
@@ -175,6 +276,7 @@ const Contact = () => {
                     value={formData.service}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F07520] focus:border-transparent transition-all duration-200"
+                    disabled={submissionState.isLoading}
                   >
                     <option value="">Select a service</option>
                     <option value="commercial">Commercial Mowing</option>
@@ -193,6 +295,7 @@ const Contact = () => {
                   value={formData.frequency}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F07520] focus:border-transparent transition-all duration-200"
+                  disabled={submissionState.isLoading}
                 >
                   <option value="">Select frequency</option>
                   <option value="one-time">One-time project</option>
@@ -212,15 +315,30 @@ const Contact = () => {
                   rows={4}
                   placeholder="Tell us about your land management needs, timeline, and any specific requirements..."
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F07520] focus:border-transparent transition-all duration-200 resize-none"
+                  disabled={submissionState.isLoading}
                 ></textarea>
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-[#F07520] text-white px-8 py-5 rounded-lg font-bold text-lg hover:bg-[#E06610] transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center group"
+                disabled={submissionState.isLoading}
+                className={`w-full px-8 py-5 rounded-lg font-bold text-lg transition-all duration-200 shadow-lg flex items-center justify-center group ${
+                  submissionState.isLoading
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-[#F07520] text-white hover:bg-[#E06610] transform hover:scale-105'
+                }`}
               >
-                Get My FREE Audit Now
-                <Send className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+                {submissionState.isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    Get My FREE Audit Now
+                    <Send className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+                  </>
+                )}
               </button>
             </form>
           </div>

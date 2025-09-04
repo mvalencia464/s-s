@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Phone, Mail } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,23 +16,24 @@ const Header = () => {
   }, []);
 
   const navItems = [
-    { name: 'About', href: '#about' },
-    { name: 'Services', href: '#services' },
-    { name: 'Service Area', href: '#service-area' },
-    { name: 'Portfolio', href: '#portfolio' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'Home', href: '/', isRoute: true },
+    { name: 'About', href: '#about', isRoute: false },
+    { name: 'Services', href: '#services', isRoute: false },
+    { name: 'Service Area', href: '#service-area', isRoute: false },
+    { name: 'Portfolio', href: '#portfolio', isRoute: false },
+    { name: 'Contact', href: '#contact', isRoute: false },
   ];
 
   return (
-    <header className={`fixed w-full z-50 transition-all duration-300 ${
-      isScrolled ? 'bg-[#1D2B40] shadow-lg' : 'bg-[#1D2B40]/95 backdrop-blur-sm'
+    <header className={`w-full z-50 transition-all duration-300 ${
+      isScrolled ? 'fixed top-0 bg-[#1D2B40] shadow-lg' : 'relative bg-[#1D2B40]/95 backdrop-blur-sm'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
-          <div className="flex items-center">
-            <img 
-             src="/white-logo.png" 
+          <Link to="/" className="flex items-center">
+            <img
+             src="/white-logo.png"
               alt="S&S Land Management Logo"
               className="w-12 h-12 rounded-lg mr-3 object-cover"
             />
@@ -38,30 +41,46 @@ const Header = () => {
               <h1 className="text-white font-bold text-xl">S&S</h1>
               <p className="text-[#EAEAEA] text-sm">Land Management</p>
             </div>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
             {navItems.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                className="text-[#EAEAEA] hover:text-[#F07520] transition-colors duration-200 font-medium"
-              >
-                {item.name}
-              </a>
+              item.isRoute ? (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className="text-[#EAEAEA] hover:text-[#F07520] transition-colors duration-200 font-medium"
+                >
+                  {item.name}
+                </Link>
+              ) : (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  className="text-[#EAEAEA] hover:text-[#F07520] transition-colors duration-200 font-medium"
+                >
+                  {item.name}
+                </a>
+              )
             ))}
           </nav>
 
           {/* Contact Info & CTA */}
           <div className="hidden lg:flex items-center space-x-4">
-            <div className="flex items-center space-x-2 text-[#EAEAEA]">
+            <a
+              href="tel:5093003701"
+              className="flex items-center space-x-2 text-[#EAEAEA] hover:text-[#F07520] transition-colors duration-200"
+            >
               <Phone className="w-4 h-4" />
-              <span className="text-sm">(555) 123-4567</span>
-            </div>
-            <button className="bg-[#F07520] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#E06610] transition-colors duration-200">
+              <span className="text-sm">509 300 3701</span>
+            </a>
+            <Link
+              to="/booking"
+              className="bg-[#F07520] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#E06610] transition-colors duration-200"
+            >
               FREE Audit
-            </button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -78,23 +97,41 @@ const Header = () => {
           <div className="lg:hidden py-4 border-t border-[#EAEAEA]/20">
             <nav className="flex flex-col space-y-4">
               {navItems.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className="text-[#EAEAEA] hover:text-[#F07520] transition-colors duration-200 font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </a>
+                item.isRoute ? (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className="text-[#EAEAEA] hover:text-[#F07520] transition-colors duration-200 font-medium"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ) : (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    className="text-[#EAEAEA] hover:text-[#F07520] transition-colors duration-200 font-medium"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.name}
+                  </a>
+                )
               ))}
               <div className="pt-4 border-t border-[#EAEAEA]/20">
-                <div className="flex items-center space-x-2 text-[#EAEAEA] mb-3">
+                <a
+                  href="tel:5093003701"
+                  className="flex items-center space-x-2 text-[#EAEAEA] hover:text-[#F07520] transition-colors duration-200 mb-3"
+                >
                   <Phone className="w-4 h-4" />
-                  <span className="text-sm">(555) 123-4567</span>
-                </div>
-                <button className="w-full bg-[#F07520] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#E06610] transition-colors duration-200">
+                  <span className="text-sm">509 300 3701</span>
+                </a>
+                <Link
+                  to="/booking"
+                  className="w-full bg-[#F07520] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#E06610] transition-colors duration-200 text-center block"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   FREE Audit
-                </button>
+                </Link>
               </div>
             </nav>
           </div>
