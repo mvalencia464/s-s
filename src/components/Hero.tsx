@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight, CheckCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   return (
@@ -27,10 +28,13 @@ const Hero = () => {
             </p>
 
             {/* CTA Button */}
-            <button className="bg-[#F07520] text-white px-10 py-5 rounded-lg font-bold text-xl hover:bg-[#E06610] transition-all duration-200 transform hover:scale-105 shadow-xl flex items-center justify-center group mx-auto lg:mx-0 mb-10">
+            <Link
+              to="/booking"
+              className="bg-[#F07520] text-white px-10 py-5 rounded-lg font-bold text-xl hover:bg-[#E06610] transition-all duration-200 transform hover:scale-105 shadow-xl flex items-center justify-center group mx-auto lg:mx-0 mb-10"
+            >
               Request Your Free Site Audit
               <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform duration-200" />
-            </button>
+            </Link>
 
             {/* Hero Benefits */}
             <div className="space-y-6">
